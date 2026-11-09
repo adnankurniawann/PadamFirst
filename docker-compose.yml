@@ -1,0 +1,46 @@
+services:
+  db:
+    build: ./db
+    environment:
+      # Kredensial khusus lokal. Port hanya dibuka di 127.0.0.1.
+      POSTGRES_USER: padamfirst
+      POSTGRES_PASSWORD: padamfirst
+      POSTGRES_DB: padamfirst
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      # Lewat TCP: server sementara saat init hanya membuka socket, jadi belum dianggap sehat.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U padamfirst -d padamfirst"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: ./api
+    command: [".venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    environment:
+      DATABASE_URL: postgresql://padamfirst:padamfirst@db:5432/padamfirst
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./api/app:/app/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    depends_on:
+      - api
+
+volumes:
+  db_data:

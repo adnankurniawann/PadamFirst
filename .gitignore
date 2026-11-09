@@ -1,0 +1,17 @@
+.env
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+.next/
+
+# Data dan model besar, diunduh atau dihasilkan lokal
+data/raw/*
+!data/raw/.gitkeep
+models/*
+!models/.gitkeep
