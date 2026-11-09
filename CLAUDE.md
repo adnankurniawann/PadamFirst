@@ -36,6 +36,12 @@ Migrasi, jalankan di `pipeline/` setelah `cp .env.example .env` di root repo:
 uv run --env-file ../.env alembic upgrade head
 ```
 
+Ingest titik api, butuh `FIRMS_MAP_KEY` di `.env` dan batas admin di `data/raw/admin/`:
+
+```bash
+uv run --env-file ../.env python -m padamfirst.ingest.firms --days 2
+```
+
 Web, jalankan di `web/`:
 
 ```bash
