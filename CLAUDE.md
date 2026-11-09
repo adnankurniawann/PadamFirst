@@ -28,6 +28,14 @@ uv run ruff format .
 uv run pytest
 ```
 
+Test `pipeline/` butuh Postgres compose, jalankan `docker compose up -d --wait db` dulu. Test memakai database `padamfirst_test` yang dibuat dan dihapus sendiri, data dev tidak tersentuh.
+
+Migrasi, jalankan di `pipeline/` setelah `cp .env.example .env` di root repo:
+
+```bash
+uv run --env-file ../.env alembic upgrade head
+```
+
 Web, jalankan di `web/`:
 
 ```bash

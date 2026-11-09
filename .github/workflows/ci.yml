@@ -15,6 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      - name: Start database for pipeline tests
+        if: matrix.project == 'pipeline'
+        run: docker compose up -d --wait db
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run ruff format --check .
