@@ -42,6 +42,12 @@ Ingest titik api, butuh `FIRMS_MAP_KEY` di `.env` dan batas admin di `data/raw/a
 uv run --env-file ../.env python -m padamfirst.ingest.firms --days 2
 ```
 
+Layer statis per sel ke `cell_static` dan `data/processed/cell_static.parquet`. Butuh data mentah di `data/raw/` (admin, peat, worldpop, worldcover, osm, dan arsip tahunan `firms_archive/viirs-snpp_<tahun>_Indonesia.csv` dari `https://firms.modaps.eosdis.nasa.gov/data/country/viirs-snpp/<tahun>/`). Jalan sekitar 20 menit:
+
+```bash
+uv run --env-file ../.env python -m padamfirst.ingest.static_layers
+```
+
 Web, jalankan di `web/`:
 
 ```bash
