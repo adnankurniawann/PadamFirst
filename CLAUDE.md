@@ -48,6 +48,13 @@ Layer statis per sel ke `cell_static` dan `data/processed/cell_static.parquet`. 
 uv run --env-file ../.env python -m padamfirst.ingest.static_layers
 ```
 
+Cuaca Open-Meteo dan FWI untuk sel aktif hari ini, atau satu titik di tanggal tertentu. Respons API di-cache per hari di `data/cache/weather/`:
+
+```bash
+uv run --env-file ../.env python -m padamfirst.ingest.weather
+uv run --env-file ../.env python -m padamfirst.ingest.weather --date 2019-09-30 --lat 0.5 --lon 101.4
+```
+
 Web, jalankan di `web/`:
 
 ```bash
