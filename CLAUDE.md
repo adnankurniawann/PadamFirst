@@ -28,7 +28,7 @@ uv run ruff format .
 uv run pytest
 ```
 
-Test `pipeline/` butuh Postgres compose, jalankan `docker compose up -d --wait db` dulu. Test memakai database `padamfirst_test` yang dibuat dan dihapus sendiri, data dev tidak tersentuh.
+Test `pipeline/` dan `api/` butuh Postgres compose, jalankan `docker compose up -d --wait db` dulu. Test memakai database `padamfirst_test` (pipeline) dan `padamfirst_api_test` (api) yang dibuat dan dihapus sendiri, data dev tidak tersentuh.
 
 Migrasi, jalankan di `pipeline/` setelah `cp .env.example .env` di root repo:
 
@@ -61,6 +61,15 @@ Fitur harian per sel aktif ke `cell_daily` (agregasi titik api, persistensi, cua
 uv run --env-file ../.env python -m padamfirst.features.build_daily
 uv run --env-file ../.env python -m padamfirst.features.build_daily --date 2026-11-10
 ```
+
+Skor prioritas baseline ke `predictions` (`model_version = baseline-v1`), default tanggal `cell_daily` terbaru:
+
+```bash
+uv run --env-file ../.env python -m padamfirst.scoring
+uv run --env-file ../.env python -m padamfirst.scoring --date 2026-11-11
+```
+
+Skema database test `api/` dibuat dari migrasi `pipeline/` lewat `uv run alembic`.
 
 Web, jalankan di `web/`:
 
