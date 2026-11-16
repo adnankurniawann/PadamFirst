@@ -17,7 +17,7 @@ Semua service, dari root repo:
 docker compose up --build
 ```
 
-Service: web `localhost:3000`, API `localhost:8000`, Postgres `localhost:5433` (bukan 5432). Perubahan di `api/app` dan `web/` langsung reload, perubahan dependensi perlu `--build`. Hapus data lokal database dengan `docker compose down -v`.
+Service: web `localhost:3000`, API `localhost:8000`, Postgres `localhost:5433` (bukan 5432). Perubahan di `api/app` dan `web/` langsung reload, perubahan dependensi perlu `--build` (untuk web tambah `-V` supaya volume `node_modules` lama diganti). Hapus data lokal database dengan `docker compose down -v`.
 
 Python, jalankan di `pipeline/` atau `api/`:
 
@@ -77,6 +77,7 @@ Web, jalankan di `web/`:
 npm ci
 npm run lint
 npm run format
+npm test
 npm run build
 ```
 

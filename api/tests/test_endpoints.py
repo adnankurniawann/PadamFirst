@@ -73,3 +73,8 @@ def test_export_csv_has_all_rows(client):
     rows = list(csv.DictReader(io.StringIO(response.text)))
     assert [row["h3_index"] for row in rows] == [HOT, MILD]
     assert rows[0]["province"] == "Sumatera Selatan"
+
+
+def test_cors_allows_dashboard_origin(client):
+    response = client.get("/api/layers", headers={"Origin": "http://localhost:3000"})
+    assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
