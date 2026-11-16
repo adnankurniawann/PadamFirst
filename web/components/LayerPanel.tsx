@@ -10,7 +10,7 @@ export default function LayerPanel({
   return (
     <nav
       aria-label="Layer peta"
-      className="flex flex-col gap-3 overflow-y-auto"
+      className="flex min-h-0 flex-col gap-3 overflow-y-auto"
     >
       {GROUPS.map((group) => (
         <section key={group}>

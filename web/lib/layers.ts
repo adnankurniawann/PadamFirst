@@ -14,10 +14,20 @@ type Scale =
 
 export type Layer = {
   id: string;
+  // Kolom di respons /api/cells/{h3_index}, sama dengan LAYER_COLUMNS di api.
+  column: string;
   label: string;
   group: string;
   unit: string;
   scale: Scale;
+};
+
+// Kelas prioritas PRD bagian 5, warnanya sama dengan layer prioritas.
+export const CLASSES: Record<string, { color: string; label: string }> = {
+  merah: { color: "#e31a1c", label: "Merah" },
+  oranye: { color: "#fd8d3c", label: "Oranye" },
+  kuning: { color: "#fed976", label: "Kuning" },
+  hijau: { color: "#2ca25f", label: "Hijau" },
 };
 
 export const GROUPS = [
@@ -32,6 +42,7 @@ export const GROUPS = [
 export const LAYERS: Layer[] = [
   {
     id: "priority",
+    column: "priority_score",
     label: "Prioritas gabungan",
     group: "Hasil",
     unit: "skor 0-100",
@@ -39,10 +50,10 @@ export const LAYERS: Layer[] = [
       kind: "stops",
       step: true,
       stops: [
-        [0, "#2ca25f"],
-        [30, "#fed976"],
-        [50, "#fd8d3c"],
-        [70, "#e31a1c"],
+        [0, CLASSES.hijau.color],
+        [30, CLASSES.kuning.color],
+        [50, CLASSES.oranye.color],
+        [70, CLASSES.merah.color],
       ],
       labels: [
         "Hijau, padam sendiri",
@@ -54,6 +65,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "intensity",
+    column: "frp_sum",
     label: "Intensitas",
     group: "Api",
     unit: "MW per sel",
@@ -70,6 +82,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "detection",
+    column: "conf_mean",
     label: "Keyakinan deteksi",
     group: "Api",
     unit: "0 low, 0,5 nominal, 1 high",
@@ -84,6 +97,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "persistence",
+    column: "persistence_days",
     label: "Persistensi",
     group: "Api",
     unit: "hari berturut-turut",
@@ -100,6 +114,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "growth",
+    column: "growth_24h",
     label: "Pertumbuhan",
     group: "Api",
     unit: "perubahan titik per 24 jam",
@@ -116,6 +131,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "peat",
+    column: "peat_pct",
     label: "Gambut",
     group: "Bahan bakar",
     unit: "persen area",
@@ -132,6 +148,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "landcover",
+    column: "landcover_class",
     label: "Tutupan lahan",
     group: "Bahan bakar",
     unit: "kelas tutupan (ESA WorldCover)",
@@ -152,6 +169,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "wind",
+    column: "wind_speed",
     label: "Angin",
     group: "Cuaca",
     unit: "km/jam, panah searah tiupan",
@@ -168,6 +186,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "rain",
+    column: "rain_7d",
     label: "Curah hujan 7 hari",
     group: "Cuaca",
     unit: "mm",
@@ -184,6 +203,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "drought",
+    column: "dc",
     label: "Kekeringan (Drought Code)",
     group: "Cuaca",
     unit: "indeks",
@@ -200,6 +220,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "temperature",
+    column: "temp_max",
     label: "Suhu maksimum",
     group: "Cuaca",
     unit: "derajat C",
@@ -216,6 +237,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "population",
+    column: "pop_density",
     label: "Kepadatan penduduk",
     group: "Dampak",
     unit: "jiwa per km2",
@@ -232,6 +254,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "human",
+    column: "dist_road_km",
     label: "Jarak ke jalan",
     group: "Dampak",
     unit: "km ke jalan terdekat",
@@ -248,6 +271,7 @@ export const LAYERS: Layer[] = [
   },
   {
     id: "confidence",
+    column: "confidence_level",
     label: "Keyakinan prediksi",
     group: "Model",
     unit: "rendah, sedang, tinggi",

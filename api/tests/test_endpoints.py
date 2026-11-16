@@ -19,6 +19,17 @@ def test_priorities_limit_and_province(client):
     assert client.get("/api/priorities?limit=0").status_code == 422
 
 
+def test_regency_filter_on_list_map_and_export(client):
+    regency = "Kota Pekanbaru"
+    body = client.get(f"/api/priorities?regency={regency}").json()
+    assert [item["h3_index"] for item in body["items"]] == [MILD]
+    assert body["summary"]["hijau"] == 1 and body["summary"]["merah"] == 0
+    cells = client.get(f"/api/cells?regency={regency}").json()["features"]
+    assert [f["properties"]["h3_index"] for f in cells] == [MILD]
+    rows = client.get(f"/api/export.csv?regency={regency}").text.strip().splitlines()
+    assert len(rows) == 2 and MILD in rows[1]
+
+
 def test_cells_is_valid_geojson_with_layer_value(client):
     body = client.get("/api/cells?layer=peat").json()
     assert body["type"] == "FeatureCollection"

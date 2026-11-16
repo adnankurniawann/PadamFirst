@@ -7,10 +7,10 @@ import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
 
+import { getJson, type Cell } from "@/lib/api";
 import { colorFor, type Layer } from "@/lib/layers";
 import { windArrows, type WindVector } from "@/lib/wind";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const BASEMAP =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 const HOTSPOT_ZOOM = 9;
@@ -19,32 +19,33 @@ const HEX_ZOOM = 7;
 // Panah angin 2 piksel per km/jam di zoom berapa pun.
 const ARROW_PX_PER_KMH = 2;
 
-type Cell = {
-  h3_index: string;
-  value: unknown;
-  priority_score: number;
-  center: [number, number];
-  regency: string | null;
-  province: string | null;
-};
 type Hotspot = {
   coordinates: [number, number];
   frp: number | null;
   acq_datetime: string;
 };
 
-async function getJson(path: string) {
-  const response = await fetch(API + path);
-  if (!response.ok) throw new Error(`${path}: ${response.status}`);
-  return response.json();
-}
+type Props = {
+  layer: Layer;
+  cells: Cell[];
+  day?: string;
+  selected?: Cell;
+  // Berubah tiap kali peta harus terbang ke sel terpilih, misalnya dari klik daftar prioritas.
+  flyKey: number;
+  onSelect: (cell: Cell) => void;
+};
 
-export default function MapView({ layer }: { layer: Layer }) {
+export default function MapView({
+  layer,
+  cells,
+  day,
+  selected,
+  flyKey,
+  onSelect,
+}: Props) {
   const container = useRef<HTMLDivElement>(null);
   const overlay = useRef<MapboxOverlay>(null);
   const [map, setMap] = useState<maplibregl.Map>();
-  const [cells, setCells] = useState<Cell[]>([]);
-  const [day, setDay] = useState<string>();
   const [wind, setWind] = useState<WindVector[]>([]);
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [error, setError] = useState<string>();
@@ -56,7 +57,7 @@ export default function MapView({ layer }: { layer: Layer }) {
       style: BASEMAP,
       bounds: [94.5, -11.5, 141.5, 6.5],
       fitBoundsOptions: {
-        padding: { left: 270, top: 20, right: 20, bottom: 20 },
+        padding: { left: 270, top: 20, right: 350, bottom: 20 },
       },
       hash: true,
     });
@@ -70,33 +71,11 @@ export default function MapView({ layer }: { layer: Layer }) {
   }, []);
 
   useEffect(() => {
-    let stale = false;
-    getJson(`/api/cells?layer=${layer.id}`)
-      .then((body) => {
-        if (stale) return;
-        type Feature = {
-          properties: Cell;
-          geometry: { coordinates: [number, number][][] };
-        };
-        const parsed = body.features.map(
-          ({ properties, geometry }: Feature) => {
-            const ring = geometry.coordinates[0].slice(0, -1);
-            const mean = (i: number) =>
-              ring.reduce((sum, p) => sum + p[i], 0) / ring.length;
-            return { ...properties, center: [mean(0), mean(1)] };
-          },
-        );
-        // Prioritas tertinggi digambar terakhir supaya tidak tertutup sel lain.
-        parsed.sort((a: Cell, b: Cell) => a.priority_score - b.priority_score);
-        setCells(parsed);
-        setDay(body.date);
-        setError(undefined);
-      })
-      .catch((e) => !stale && setError(String(e)));
-    return () => {
-      stale = true;
-    };
-  }, [layer.id]);
+    if (map && selected && flyKey)
+      map.flyTo({ center: selected.center, zoom: 11 });
+    // Hanya saat flyKey berubah, bukan tiap kali selected berganti karena klik di peta.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, flyKey]);
 
   useEffect(() => {
     if (layer.id !== "wind" || !day) return;
@@ -170,6 +149,18 @@ export default function MapView({ layer }: { layer: Layer }) {
             getColor: [230, 240, 255, 220],
             getWidth: 1.5,
           }),
+        selected &&
+          new H3HexagonLayer<Cell>({
+            id: "selected",
+            data: [selected],
+            getHexagon: (d) => d.h3_index,
+            filled: false,
+            extruded: false,
+            stroked: true,
+            getLineColor: [255, 255, 255, 255],
+            lineWidthUnits: "pixels",
+            getLineWidth: 3,
+          }),
         new ScatterplotLayer<Hotspot>({
           id: "hotspots",
           data: hotspots,
@@ -180,6 +171,10 @@ export default function MapView({ layer }: { layer: Layer }) {
           pickable: true,
         }),
       ],
+      getCursor: ({ isHovering }) => (isHovering ? "pointer" : "grab"),
+      onClick: ({ object, layer: picked }) => {
+        if (object && picked?.id.startsWith("cell")) onSelect(object);
+      },
       getTooltip: ({ object, layer: picked }) => {
         if (!object) return null;
         if (picked?.id === "hotspots")
@@ -191,7 +186,7 @@ export default function MapView({ layer }: { layer: Layer }) {
         return `${layer.label}: ${typeof value === "number" ? value.toFixed(1) : value}\n${layer.unit}\n${place}`;
       },
     });
-  }, [cells, wind, hotspots, layer, zoom]);
+  }, [cells, wind, hotspots, layer, zoom, selected, onSelect]);
 
   return (
     <div className="absolute inset-0">
@@ -202,11 +197,6 @@ export default function MapView({ layer }: { layer: Layer }) {
           className="absolute top-3 left-1/2 -translate-x-1/2 rounded bg-red-900/90 px-3 py-1.5 text-sm text-white"
         >
           Gagal memuat data: {error}
-        </p>
-      )}
-      {day && (
-        <p className="absolute top-3 right-3 rounded bg-neutral-900/85 px-3 py-1.5 text-sm text-neutral-200">
-          Data {day}
         </p>
       )}
     </div>

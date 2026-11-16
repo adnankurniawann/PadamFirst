@@ -53,15 +53,21 @@ JOIN cell_daily d USING (h3_index, date)
 LEFT JOIN cell_static s USING (h3_index)
 WHERE p.model_version = :version AND p.date = :date
   AND (CAST(:province AS text) IS NULL OR s.province = :province)
+  AND (CAST(:regency AS text) IS NULL OR s.regency = :regency)
 """
 
 
 def fetch_cells(
-    conn: Connection, day: date, province: str | None, extra: str = "", **params
+    conn: Connection,
+    day: date,
+    province: str | None,
+    extra: str = "",
+    regency: str | None = None,
+    **params,
 ) -> list[dict]:
     """Baris CELLS_SQL, extra untuk filter atau urutan tambahan dengan parameternya di params."""
     rows = conn.execute(
         text(CELLS_SQL + extra),
-        {"version": MODEL_VERSION, "date": day, "province": province, **params},
+        {"version": MODEL_VERSION, "date": day, "province": province, "regency": regency, **params},
     )
     return [dict(row) for row in rows.mappings()]

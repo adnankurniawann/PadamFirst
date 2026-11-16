@@ -30,6 +30,7 @@ def cells(
     date: date | None = None,
     layer: LayerId = "priority",
     province: str | None = None,
+    regency: str | None = None,
 ) -> dict:
     day = resolve_date(conn, date)
     column = LAYER_COLUMNS[layer]
@@ -46,7 +47,7 @@ def cells(
                 "regency": row["regency"],
             },
         }
-        for row in fetch_cells(conn, day, province)
+        for row in fetch_cells(conn, day, province, regency=regency)
     ]
     return {"type": "FeatureCollection", "date": day, "layer": layer, "features": features}
 

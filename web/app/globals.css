@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+/* Kontrol zoom dan atribusi OSM MapLibre digeser ke kiri panel prioritas (w-80 + jarak 0.75rem). */
+main .maplibregl-ctrl-bottom-right {
+  right: 21rem;
+}
