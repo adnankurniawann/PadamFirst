@@ -16,6 +16,11 @@ dependencies = [
 
 [dependency-groups]
 dev = ["pytest", "ruff"]
+notebook = [
+    "ipykernel>=7.4.0",
+    "matplotlib>=3.11.2",
+    "nbconvert>=7.17.2",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

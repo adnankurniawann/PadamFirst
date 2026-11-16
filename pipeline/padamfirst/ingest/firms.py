@@ -48,8 +48,11 @@ def fetch_csv(source: str, days: int, key: str) -> str:
 
 
 def parse_csv(csv_text: str) -> pd.DataFrame:
-    raw = pd.read_csv(io.StringIO(csv_text))
+    return parse_frame(pd.read_csv(io.StringIO(csv_text)))
 
+
+def parse_frame(raw: pd.DataFrame) -> pd.DataFrame:
+    """Kolom CSV FIRMS (API atau arsip) jadi kolom tabel hotspots."""
     missing = REQUIRED_COLUMNS - set(raw.columns)
     if missing:
         raise ValueError(f"CSV FIRMS tidak valid, kolom hilang: {sorted(missing)}")

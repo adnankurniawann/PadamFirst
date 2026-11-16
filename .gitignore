@@ -16,3 +16,6 @@ data/raw/*
 models/*
 !models/.gitkeep
 data/cache/
+data/processed/firms/
+data/processed/weather/
+data/processed/train.parquet

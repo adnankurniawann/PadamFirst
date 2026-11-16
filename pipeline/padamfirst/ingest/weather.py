@@ -64,9 +64,9 @@ def endpoint(end: date, today: date) -> str:
 
 
 def fetch_json(url: str, params: dict, cache_dir: Path) -> list[dict]:
-    """GET dengan retry. Respons di-cache per hari, run ulang di hari sama tidak ke API lagi."""
+    """GET dengan retry. Respons di-cache di cache_dir, run ulang tidak ke API lagi."""
     key = hashlib.sha1(json.dumps([url, params], sort_keys=True).encode()).hexdigest()
-    path = cache_dir / date.today().isoformat() / f"{key}.json"
+    path = cache_dir / f"{key}.json"
     if path.exists():
         return json.loads(path.read_text())
 
@@ -129,14 +129,12 @@ def fetch_weather(points: pd.DataFrame, start: date, end: date, cache_dir: Path)
     return pd.concat(frames, ignore_index=True)
 
 
-def weather_with_fwi(cells, day: date, cache_dir: Path = CACHE_DIR) -> pd.DataFrame:
-    """Cuaca dan FWI per sel untuk day dan SPIN_UP_DAYS hari sebelumnya.
+def add_fwi(weather: pd.DataFrame, lat: pd.Series) -> pd.DataFrame:
+    """Kode FWI per titik per hari ditambahkan ke hasil fetch_weather.
 
-    Rantai FWI mulai dari nilai awal di hari pertama, jadi hanya baris day yang sudah stabil.
+    lat adalah lintang per titik. Semua titik harus mulai di tanggal yang sama, karena rantai FWI
+    mulai dari nilai awal di hari pertama.
     """
-    points = weather_points(cells)
-    weather = fetch_weather(points, day - timedelta(days=SPIN_UP_DAYS), day, cache_dir)
-    lat = points.drop_duplicates("point").set_index("point")["lat"]
     inputs = pd.DataFrame(
         {
             "h3_index": weather["point"],
@@ -150,7 +148,20 @@ def weather_with_fwi(cells, day: date, cache_dir: Path = CACHE_DIR) -> pd.DataFr
         }
     )
     codes = fwi_series(inputs).rename(columns={"h3_index": "point"})
-    per_point = weather.merge(codes, on=["point", "date"])
+    return weather.merge(codes, on=["point", "date"])
+
+
+def weather_with_fwi(cells, day: date, cache_dir: Path = CACHE_DIR) -> pd.DataFrame:
+    """Cuaca dan FWI per sel untuk day dan SPIN_UP_DAYS hari sebelumnya.
+
+    Rantai FWI mulai dari nilai awal di hari pertama, jadi hanya baris day yang sudah stabil.
+    Cache per hari run, karena data prakiraan beberapa hari terakhir masih bisa berubah.
+    """
+    points = weather_points(cells)
+    start = day - timedelta(days=SPIN_UP_DAYS)
+    weather = fetch_weather(points, start, day, cache_dir / date.today().isoformat())
+    lat = points.drop_duplicates("point").set_index("point")["lat"]
+    per_point = add_fwi(weather, lat)
     return points[["h3_index", "point"]].merge(per_point, on="point").drop(columns="point")
 
 

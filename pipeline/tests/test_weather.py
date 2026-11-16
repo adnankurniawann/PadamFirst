@@ -91,7 +91,7 @@ def test_weather_points_share_parent_cell():
     assert points["point"].iloc[0] == h3.cell_to_parent(cell, weather.WEATHER_RESOLUTION)
 
 
-def test_fetch_json_caches_per_day(api, tmp_path):
+def test_fetch_json_caches_response(api, tmp_path):
     params = {"latitude": "1.0", "start_date": "2019-09-01", "end_date": "2019-09-01"}
 
     first = weather.fetch_json(weather.ARCHIVE_URL, params, tmp_path)
@@ -100,7 +100,7 @@ def test_fetch_json_caches_per_day(api, tmp_path):
     assert first == second
     assert isinstance(first, list) and len(first) == 1
     assert len(api.calls) == 1
-    assert (tmp_path / date.today().isoformat()).is_dir()
+    assert len(list(tmp_path.glob("*.json"))) == 1
 
 
 def test_fetch_json_retries_rate_limit_and_server_errors(api, tmp_path):
@@ -151,6 +151,8 @@ def test_weather_with_fwi_covers_spin_up_and_target_day(api, tmp_path):
     # Tanpa hujan DC terus naik dari nilai awal 15.
     dc = result[result["h3_index"] == cells[0]].sort_values("date")["dc"]
     assert dc.is_monotonic_increasing and dc.iloc[0] > 15
+    # Prakiraan masih bisa berubah, jadi cache weather_with_fwi dipisah per hari run.
+    assert (tmp_path / date.today().isoformat()).is_dir()
 
 
 def test_main_requires_lat_and_lon_together():

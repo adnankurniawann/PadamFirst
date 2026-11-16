@@ -69,6 +69,15 @@ uv run --env-file ../.env python -m padamfirst.scoring
 uv run --env-file ../.env python -m padamfirst.scoring --date 2026-11-11
 ```
 
+Dataset historis Fase 10, berurutan. Arsip FIRMS ke `data/processed/firms/<tahun>.parquet` (Juni sampai November, api vegetasi saja). Cuaca ERA5 grid 0,5 derajat ke `data/processed/weather/<tahun>.parquet` butuh sekitar 128 ribu call Open-Meteo, jadi makan waktu sekitar 13 hari karena batas 10.000 call per hari. Respons di-cache permanen di `data/cache/weather_archive/`, jadi kalau terputus cukup jalankan lagi. Dataset latih ke `data/processed/train.parquet` dari tahun yang cuacanya sudah lengkap:
+
+```bash
+uv run python -m padamfirst.ingest.firms_archive
+nohup uv run python -m padamfirst.ingest.weather_archive > ../data/cache/weather_archive.log 2>&1 &
+uv run python -m padamfirst.model.dataset
+uv run --group notebook jupyter nbconvert --to notebook --execute --inplace notebooks/eda.ipynb
+```
+
 Skema database test `api/` dibuat dari migrasi `pipeline/` lewat `uv run alembic`.
 
 Web, jalankan di `web/`:
