@@ -78,6 +78,14 @@ uv run python -m padamfirst.model.dataset
 uv run --group notebook jupyter nbconvert --to notebook --execute --inplace notebooks/eda.ipynb
 ```
 
+Training Fase 11 dari `train.parquet` (latih 2015 sampai 2022, validasi 2023, uji 2024 sampai 2025, jadi semua tahun harus sudah ada). Model ke `models/lgbm-v1.txt`, parameter, titik kalibrasi isotonic, dan metrik ke `models/lgbm-v1.json`. `evaluate` menghitung ulang metrik dari model tersimpan:
+
+```bash
+uv run python -m padamfirst.model.train --trials 50
+uv run python -m padamfirst.model.evaluate
+uv run --group notebook jupyter nbconvert --to notebook --execute --inplace notebooks/model.ipynb
+```
+
 Skema database test `api/` dibuat dari migrasi `pipeline/` lewat `uv run alembic`.
 
 Web, jalankan di `web/`:
